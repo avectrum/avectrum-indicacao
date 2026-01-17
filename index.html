@@ -151,7 +151,7 @@
       margin-bottom:8px;
     }
 
-    /* ✅ NOVO: seletor de pacotes */
+    /* ✅ Seletor de pacotes */
     .selectWrap{
       margin-top:8px;
       display:grid;
@@ -196,6 +196,7 @@
       background:rgba(0,0,0,.25);
       color:var(--text);
       outline:none;
+      font-size:16px; /* ✅ ajuda no iOS (evita zoom e melhora select) */
     }
     select{ color-scheme: dark; }
     select option{
@@ -347,7 +348,6 @@
         <div class="box">
           <div class="boxTitle">Selecione um pacote</div>
 
-          <!-- ✅ TROCA: agora é dropdown com seta -->
           <div class="selectWrap">
             <select id="packageSelect">
               <option value="-1">Selecione um pacote...</option>
@@ -362,7 +362,7 @@
             </div>
 
             <div class="selectHint">
-              Use a seta do seletor para abrir a lista e escolher o plano.
+              Toque no seletor acima e escolha o plano.
             </div>
           </div>
 
@@ -508,8 +508,8 @@
   // =======================
   // CONFIGURE AQUI
   // =======================
-  const PIX_KEY = "48998134994";     // <= TROQUE
-  const WHATSAPP_NUMBER = "554891366632";   // ✅ SEU NÚMERO (só números)
+  const PIX_KEY = "48998134994";          // <= TROQUE
+  const WHATSAPP_NUMBER = "554891366632"; // ✅ SEU NÚMERO (só números)
 
   // (opcional) lista de pessoas/códigos que podem indicar
   const INDICADORES = [
@@ -645,7 +645,6 @@
     document.getElementById("sumRef2").textContent = ref;
     document.getElementById("sumRef3").textContent = ref;
 
-    // ✅ Detalhe do pacote (novo UI)
     const details = document.getElementById("packageDetails");
     const pkgTextUI = document.getElementById("pkgTextUI");
     const pkgTotalUI = document.getElementById("pkgTotalUI");
@@ -736,7 +735,6 @@
     window.scrollTo({top:0, behavior:"smooth"});
   }
 
-  // ✅ NOVO: render do select (dropdown)
   function renderPackagesSelect(){
     const sel = document.getElementById("packageSelect");
     sel.innerHTML = `<option value="-1">Selecione um pacote...</option>`;
@@ -794,6 +792,7 @@
     copyText(purchaseCode, "Código copiado! Faça o Pix e depois confirme.");
   }
 
+  // ✅ FUNÇÃO CORRIGIDA (sem “Página: ...” e sem erro de crase)
   function confirmPayment(){
     if(!purchaseCode){
       alert("Primeiro gere o código na etapa do Pix.");
@@ -817,8 +816,7 @@
 💰 Total: ${p ? brl(p.price) : "—"}
 
 🧷 Indicação: ${ref || "direto"}
-🕒 Quando: ${when}
-
+🕒 Quando: ${when}`.trim();
 
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
     window.open(url, "_blank");
@@ -830,7 +828,6 @@
     document.getElementById("buyerName").value = "";
     document.getElementById("buyerWhats").value = "";
 
-    // reset select pacote
     const pkgSel = document.getElementById("packageSelect");
     pkgSel.value = "-1";
 
@@ -884,7 +881,7 @@
   document.getElementById("pixKeyUI").textContent = PIX_KEY;
   document.getElementById("whatsNumberUI").textContent = WHATSAPP_NUMBER;
 
-  renderPackagesSelect();   // ✅ agora é select
+  renderPackagesSelect();
   setupIndicacao();
   setProgress(1);
   syncSummary();
