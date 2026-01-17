@@ -121,7 +121,7 @@
       border:1px solid rgba(255,255,255,.14);
     }
     .dot.active{background:var(--red);border-color:rgba(255,87,87,.55)}
-    .line{width:70px;height:2px;background:rgba(255,255,255,.16)}
+    .line{width:60px;height:2px;background:rgba(255,255,255,.16)}
     .line.active{background:rgba(255,87,87,.55)}
     .stepLabel{
       font-size:11px;color:rgba(255,255,255,.55);
@@ -202,6 +202,13 @@
       color:var(--text);
       outline:none;
     }
+    /* ajuda MUITO em navegadores que aplicam tema claro no select */
+    select{ color-scheme: dark; }
+    select option{
+      background:#0e0f14;
+      color:#e9eef6;
+    }
+
     input::placeholder{color:rgba(255,255,255,.35)}
     input:focus, select:focus{border-color:rgba(255,87,87,.45)}
 
@@ -272,6 +279,16 @@
       display:none;
       z-index:50;
     }
+    .bigMsg{
+      font-size:14px;
+      color:rgba(255,255,255,.80);
+      line-height:1.5;
+      margin:6px 0 0;
+    }
+    .mono{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      letter-spacing:.04em;
+    }
   </style>
 </head>
 
@@ -290,20 +307,21 @@
       <h1 class="title">Comprar créditos</h1>
       <p class="subtitle">
         Selecione um pacote, escolha a indicação (de quem você veio) e finalize via <b>Pix</b>.
-        Depois, envie a confirmação pelo <b>Telegram</b>.
+        Depois, confirme o pagamento.
       </p>
 
       <div class="miniRow">
         <div class="mini">Total atual: <b id="miniTotal" class="red">R$ 0,00</b></div>
         <div class="mini">Pacote: <b id="miniPack">—</b></div>
         <div class="mini">Indicação: <b id="miniRef">—</b></div>
+        <div class="mini">Código: <b id="miniCode" class="red">—</b></div>
       </div>
     </div>
 
     <div class="card">
       <p class="subtitle" style="margin:0;">
         * GitHub Pages não tem banco de dados. Para controle, a confirmação vai para seu Telegram com:
-        <b>nome</b>, <b>WhatsApp</b>, <b>créditos</b>, <b>valor</b> e <b>indicação</b>.
+        <b>nome</b>, <b>WhatsApp</b>, <b>créditos</b>, <b>valor</b>, <b>indicação</b> e <b>código</b>.
       </p>
       <div class="warn">Dica: abra com <b>?ref=JOAO01</b> (ex: <b>.../?ref=JOAO01</b>) para sugerir a indicação automaticamente.</div>
     </div>
@@ -312,7 +330,7 @@
   <div class="stepsCard">
     <div class="stepHeader">
       <div class="stepTitle">
-        <small id="stepSmall">ETAPA 1 DE 3</small>
+        <small id="stepSmall">ETAPA 1 DE 4</small>
         <b id="stepBig">Escolher créditos</b>
         <span id="stepSub">Selecione o pacote de créditos.</span>
       </div>
@@ -320,10 +338,13 @@
       <div class="progress">
         <span class="dot active" id="dot1"></span><span class="line" id="line1"></span>
         <span class="dot" id="dot2"></span><span class="line" id="line2"></span>
-        <span class="dot" id="dot3"></span>
+        <span class="dot" id="dot3"></span><span class="line" id="line3"></span>
+        <span class="dot" id="dot4"></span>
+
         <span class="stepLabel active" id="lbl1">Créditos</span>
         <span class="stepLabel" id="lbl2">Indicação</span>
         <span class="stepLabel" id="lbl3">Pix</span>
+        <span class="stepLabel" id="lbl4">Confirmar</span>
       </div>
     </div>
 
@@ -346,6 +367,7 @@
           <div class="row"><span>Pacote</span><strong id="sumPack1">—</strong></div>
           <div class="row"><span>Total</span><strong class="total" id="sumTotal1">R$ 0,00</strong></div>
           <div class="row"><span>Indicação</span><strong id="sumRef1">—</strong></div>
+          <div class="row"><span>Código</span><strong id="sumCode1" class="mono">—</strong></div>
         </div>
       </div>
     </section>
@@ -378,6 +400,7 @@
           <div class="row"><span>Pacote</span><strong id="sumPack2">—</strong></div>
           <div class="row"><span>Total</span><strong class="total" id="sumTotal2">R$ 0,00</strong></div>
           <div class="row"><span>Indicação</span><strong id="sumRef2">—</strong></div>
+          <div class="row"><span>Código</span><strong id="sumCode2" class="mono">—</strong></div>
         </div>
       </div>
     </section>
@@ -393,7 +416,16 @@
               <div style="font-size:12px;color:rgba(255,255,255,.65);letter-spacing:.08em;text-transform:uppercase">Chave Pix</div>
               <div class="pixKey" id="pixKeyUI">SUA_CHAVE_PIX</div>
             </div>
-            <button class="copyBtn" type="button" onclick="copyPix()">Copiar</button>
+            <button class="copyBtn" type="button" onclick="copyPix()">Copiar Pix</button>
+          </div>
+
+          <!-- CÓDIGO DE COMPRA (copiável) -->
+          <div class="pixBox">
+            <div>
+              <div style="font-size:12px;color:rgba(255,255,255,.65);letter-spacing:.08em;text-transform:uppercase">Código da compra</div>
+              <div class="pixKey mono" id="purchaseCodeUI">—</div>
+            </div>
+            <button class="copyBtn" type="button" onclick="copyCode()">Copiar código</button>
           </div>
 
           <div class="box" style="margin-top:14px;">
@@ -401,14 +433,17 @@
             <div class="row"><span>Pacote</span><strong id="sumPack3">—</strong></div>
             <div class="row"><span>Total</span><strong class="total" id="sumTotal3">R$ 0,00</strong></div>
             <div class="row"><span>Indicação</span><strong id="sumRef3">—</strong></div>
+            <div class="row"><span>Código</span><strong id="sumCode3" class="mono">—</strong></div>
           </div>
 
           <div class="actions">
             <button class="btn2" type="button" onclick="goStep(2)">← Voltar</button>
-            <button class="btn" type="button" onclick="sendTelegram()">Enviar confirmação no Telegram</button>
+            <button class="btn" type="button" onclick="goStep(4)">Já paguei →</button>
           </div>
 
-          <div class="warn">Depois do Pix, clique para enviar os dados. Assim você controla “quem comprou de quem”.</div>
+          <div class="warn">
+            Faça o Pix e guarde seu <b>código</b>. Em seguida clique em <b>“Já paguei”</b>.
+          </div>
         </div>
 
         <div class="box">
@@ -418,6 +453,39 @@
           <div class="row"><span>Pacote</span><strong id="tgPack">—</strong></div>
           <div class="row"><span>Valor</span><strong id="tgTotal">—</strong></div>
           <div class="row"><span>Indicação</span><strong id="tgRef">—</strong></div>
+          <div class="row"><span>Código</span><strong id="tgCode" class="mono">—</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 4 -->
+    <section id="step4" style="display:none;">
+      <div class="grid2">
+        <div class="box">
+          <div class="boxTitle">Confirmação</div>
+          <p class="bigMsg">
+            Se precisar falar comigo no WhatsApp:
+            <b class="mono" id="whatsNumberUI">—</b>
+          </p>
+
+          <div class="actions" style="margin-top:12px;">
+            <button class="btn2" type="button" onclick="goStep(3)">← Voltar</button>
+            <button class="btn" type="button" onclick="confirmPayment()">Eu fiz o pagamento</button>
+          </div>
+
+          <div class="warn">
+            Ao clicar em <b>“Eu fiz o pagamento”</b>, vai abrir seu Telegram com a mensagem pronta (igual o exemplo da sua foto).
+          </div>
+        </div>
+
+        <div class="box">
+          <div class="boxTitle">Resumo final</div>
+          <div class="row"><span>Nome</span><strong id="finalName">—</strong></div>
+          <div class="row"><span>WhatsApp</span><strong id="finalWhats">—</strong></div>
+          <div class="row"><span>Pacote</span><strong id="finalPack">—</strong></div>
+          <div class="row"><span>Total</span><strong id="finalTotal" class="total">—</strong></div>
+          <div class="row"><span>Indicação</span><strong id="finalRef">—</strong></div>
+          <div class="row"><span>Código</span><strong id="finalCode" class="mono">—</strong></div>
         </div>
       </div>
     </section>
@@ -433,6 +501,7 @@
   // =======================
   const PIX_KEY = "SUA_CHAVE_PIX_AQUI";     // <= TROQUE
   const TELEGRAM_USER = "SEUUSUARIO";       // <= TROQUE (sem @)
+  const WHATSAPP_NUMBER = "55XXXXXXXXXXX";  // <= TROQUE (ex: 5511999999999)
 
   // (opcional) lista de pessoas/códigos que podem indicar
   const INDICADORES = [
@@ -440,6 +509,8 @@
     "JOAO01",
     "ANA02",
     "MARCOS03",
+    "GUTO",
+    "TKZ Community"
   ];
 
   // =======================
@@ -468,6 +539,7 @@
   const qs = new URLSearchParams(location.search);
   const refFromUrl = (qs.get("ref") || "").trim();
   let selectedIndex = -1;
+  let purchaseCode = ""; // <- código da compra
 
   // =======================
   // HELPERS
@@ -484,24 +556,38 @@
     return selectedIndex >= 0 ? PACKAGES[selectedIndex] : null;
   }
 
+  function generatePurchaseCode(){
+    const d = new Date();
+    const date =
+      String(d.getDate()).padStart(2,"0") +
+      String(d.getMonth()+1).padStart(2,"0") +
+      String(d.getFullYear()).slice(-2);
+
+    const rand = Math.random().toString(36).substring(2,7).toUpperCase();
+    return `AVE-${date}-${rand}`;
+  }
+
   function setProgress(step){
     const dot1 = document.getElementById("dot1");
     const dot2 = document.getElementById("dot2");
     const dot3 = document.getElementById("dot3");
+    const dot4 = document.getElementById("dot4");
     const line1 = document.getElementById("line1");
     const line2 = document.getElementById("line2");
+    const line3 = document.getElementById("line3");
     const lbl1 = document.getElementById("lbl1");
     const lbl2 = document.getElementById("lbl2");
     const lbl3 = document.getElementById("lbl3");
+    const lbl4 = document.getElementById("lbl4");
 
-    [dot1,dot2,dot3].forEach(d=>d.classList.remove("active"));
-    [line1,line2].forEach(l=>l.classList.remove("active"));
-    [lbl1,lbl2,lbl3].forEach(l=>l.classList.remove("active"));
+    [dot1,dot2,dot3,dot4].forEach(d=>d.classList.remove("active"));
+    [line1,line2,line3].forEach(l=>l.classList.remove("active"));
+    [lbl1,lbl2,lbl3,lbl4].forEach(l=>l.classList.remove("active"));
 
     if(step===1){
       dot1.classList.add("active");
       lbl1.classList.add("active");
-      document.getElementById("stepSmall").textContent = "ETAPA 1 DE 3";
+      document.getElementById("stepSmall").textContent = "ETAPA 1 DE 4";
       document.getElementById("stepBig").textContent = "Escolher créditos";
       document.getElementById("stepSub").textContent = "Selecione o pacote de créditos.";
     }
@@ -509,7 +595,7 @@
       dot1.classList.add("active"); dot2.classList.add("active");
       line1.classList.add("active");
       lbl2.classList.add("active");
-      document.getElementById("stepSmall").textContent = "ETAPA 2 DE 3";
+      document.getElementById("stepSmall").textContent = "ETAPA 2 DE 4";
       document.getElementById("stepBig").textContent = "Indicação";
       document.getElementById("stepSub").textContent = "Informe seus dados e selecione de quem veio.";
     }
@@ -517,9 +603,17 @@
       dot1.classList.add("active"); dot2.classList.add("active"); dot3.classList.add("active");
       line1.classList.add("active"); line2.classList.add("active");
       lbl3.classList.add("active");
-      document.getElementById("stepSmall").textContent = "ETAPA 3 DE 3";
-      document.getElementById("stepBig").textContent = "Pix";
-      document.getElementById("stepSub").textContent = "Copie a chave Pix e envie a confirmação no Telegram.";
+      document.getElementById("stepSmall").textContent = "ETAPA 3 DE 4";
+      document.getElementById("stepBig").textContent = "Pix + Código";
+      document.getElementById("stepSub").textContent = "Copie o Pix e o código da compra.";
+    }
+    if(step===4){
+      dot1.classList.add("active"); dot2.classList.add("active"); dot3.classList.add("active"); dot4.classList.add("active");
+      line1.classList.add("active"); line2.classList.add("active"); line3.classList.add("active");
+      lbl4.classList.add("active");
+      document.getElementById("stepSmall").textContent = "ETAPA 4 DE 4";
+      document.getElementById("stepBig").textContent = "Confirmar pagamento";
+      document.getElementById("stepSub").textContent = "Clique em “Eu fiz o pagamento” para enviar a confirmação no Telegram.";
     }
   }
 
@@ -534,6 +628,14 @@
   function syncSummary(){
     const p = selectedPkg();
     const ref = getRefFinal();
+
+    const codeTxt = purchaseCode || "—";
+    document.getElementById("miniCode").textContent = codeTxt;
+    document.getElementById("sumCode1").textContent = codeTxt;
+    document.getElementById("sumCode2").textContent = codeTxt;
+    document.getElementById("sumCode3").textContent = codeTxt;
+
+    document.getElementById("purchaseCodeUI").textContent = codeTxt;
 
     document.getElementById("miniRef").textContent = ref;
     document.getElementById("sumRef1").textContent = ref;
@@ -563,11 +665,23 @@
     }
 
     // preview telegram
-    document.getElementById("tgName").textContent = (document.getElementById("buyerName").value || "").trim() || "—";
-    document.getElementById("tgWhats").textContent = (document.getElementById("buyerWhats").value || "").trim() || "—";
+    const name = (document.getElementById("buyerName").value || "").trim();
+    const whats = (document.getElementById("buyerWhats").value || "").trim();
+
+    document.getElementById("tgName").textContent = name || "—";
+    document.getElementById("tgWhats").textContent = whats || "—";
     document.getElementById("tgPack").textContent = p ? pkgLabel(p) : "—";
     document.getElementById("tgTotal").textContent = p ? brl(p.price) : "—";
     document.getElementById("tgRef").textContent = ref;
+    document.getElementById("tgCode").textContent = purchaseCode || "—";
+
+    // step4 resumo
+    document.getElementById("finalName").textContent = name || "—";
+    document.getElementById("finalWhats").textContent = whats || "—";
+    document.getElementById("finalPack").textContent = p ? pkgLabel(p) : "—";
+    document.getElementById("finalTotal").textContent = p ? brl(p.price) : "—";
+    document.getElementById("finalRef").textContent = ref;
+    document.getElementById("finalCode").textContent = purchaseCode || "—";
   }
 
   function goStep(step){
@@ -590,11 +704,22 @@
         alert("Selecione a indicação.");
         return;
       }
+      // gera o código assim que tiver nome + whats válidos
+      if(!purchaseCode){
+        purchaseCode = generatePurchaseCode();
+      }
+    }
+    if(step === 4){
+      if(!purchaseCode){
+        alert("Primeiro informe seus dados e gere o código na etapa do Pix.");
+        return;
+      }
     }
 
     document.getElementById("step1").style.display = (step===1) ? "block" : "none";
     document.getElementById("step2").style.display = (step===2) ? "block" : "none";
     document.getElementById("step3").style.display = (step===3) ? "block" : "none";
+    document.getElementById("step4").style.display = (step===4) ? "block" : "none";
 
     setProgress(step);
     syncSummary();
@@ -639,25 +764,37 @@
     t.textContent = text || "Copiado!";
     t.style.display = "block";
     clearTimeout(window.__toastTimer);
-    window.__toastTimer = setTimeout(()=> t.style.display="none", 1300);
+    window.__toastTimer = setTimeout(()=> t.style.display="none", 1400);
   }
 
-  async function copyPix(){
+  async function copyText(txt, okMsg){
     try{
-      await navigator.clipboard.writeText(PIX_KEY);
-      showToast("Chave Pix copiada!");
+      await navigator.clipboard.writeText(txt);
+      showToast(okMsg || "Copiado!");
     }catch(e){
       const temp = document.createElement("textarea");
-      temp.value = PIX_KEY;
+      temp.value = txt;
       document.body.appendChild(temp);
       temp.select();
       document.execCommand("copy");
       temp.remove();
-      showToast("Chave Pix copiada!");
+      showToast(okMsg || "Copiado!");
     }
   }
 
-  function sendTelegram(){
+  function copyPix(){
+    copyText(PIX_KEY, "Chave Pix copiada!");
+  }
+
+  function copyCode(){
+    if(!purchaseCode){
+      alert("Preencha seu nome e WhatsApp para gerar o código da compra.");
+      return;
+    }
+    copyText(purchaseCode, "Código copiado! Faça o Pix e depois confirme.");
+  }
+
+  function sendTelegram({status}){
     const p = selectedPkg();
     const name = (document.getElementById("buyerName").value || "").trim();
     const whats = (document.getElementById("buyerWhats").value || "").trim();
@@ -666,11 +803,13 @@
     const now = new Date().toLocaleString("pt-BR");
 
     const msg =
-      `Compra AVECTRUM%0A` +
+      `Pagamento AVECTRUM%0A` +
+      `Status: ${encodeURIComponent(status || "—")}%0A` +
+      `Código: ${encodeURIComponent(purchaseCode || "—")}%0A` +
       `Nome: ${encodeURIComponent(name)}%0A` +
       `WhatsApp: ${encodeURIComponent(whats)}%0A` +
-      `Pacote: ${encodeURIComponent(pkgLabel(p))}%0A` +
-      `Valor: ${encodeURIComponent(brl(p.price))}%0A` +
+      `Pacote: ${encodeURIComponent(p ? pkgLabel(p) : "—")}%0A` +
+      `Valor: ${encodeURIComponent(p ? brl(p.price) : "—")}%0A` +
       `Indicação: ${encodeURIComponent(ref)}%0A` +
       `Data/Hora: ${encodeURIComponent(now)}%0A` +
       `URL: ${encodeURIComponent(location.href)}`;
@@ -679,8 +818,16 @@
     window.open(url, "_blank");
   }
 
+  function confirmPayment(){
+    // alerta “exemplo” (igual você pediu)
+    alert("✅ Confirmação pronta! Vou abrir seu Telegram para enviar a mensagem.");
+    showToast("Abrindo Telegram…");
+    sendTelegram({ status: "CLIENTE CLICOU: EU FIZ O PAGAMENTO" });
+  }
+
   function resetFlow(){
     selectedIndex = -1;
+    purchaseCode = "";
     document.getElementById("buyerName").value = "";
     document.getElementById("buyerWhats").value = "";
     document.querySelectorAll(".opt").forEach(el=>el.classList.remove("active"));
@@ -713,7 +860,7 @@
     final.forEach(v=>{
       const o = document.createElement("option");
       o.value = v;
-      o.textContent = v === "direto" ? "Direto (sem indicação)" : v;
+      o.textContent = (v === "direto") ? "Direto (sem indicação)" : v;
       sel.appendChild(o);
     });
 
@@ -741,12 +888,17 @@
     });
 
     document.getElementById("refOther").addEventListener("input", syncSummary);
-    document.getElementById("buyerName").addEventListener("input", syncSummary);
+    document.getElementById("buyerName").addEventListener("input", ()=>{
+      // se o cliente mudar nome/whats depois, mantém o mesmo código (controle).
+      // Se quiser gerar novo ao alterar, me fala que eu mudo.
+      syncSummary();
+    });
     document.getElementById("buyerWhats").addEventListener("input", syncSummary);
   }
 
   // INIT
   document.getElementById("pixKeyUI").textContent = PIX_KEY;
+  document.getElementById("whatsNumberUI").textContent = WHATSAPP_NUMBER;
   renderPackages();
   setupIndicacao();
   setProgress(1);
