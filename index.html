@@ -202,7 +202,6 @@
       color:var(--text);
       outline:none;
     }
-    /* ajuda MUITO em navegadores que aplicam tema claro no select */
     select{ color-scheme: dark; }
     select option{
       background:#0e0f14;
@@ -320,8 +319,8 @@
 
     <div class="card">
       <p class="subtitle" style="margin:0;">
-        * GitHub Pages não tem banco de dados. Para controle, a confirmação vai para seu Telegram com:
-        <b>nome</b>, <b>WhatsApp</b>, <b>créditos</b>, <b>valor</b>, <b>indicação</b> e <b>código</b>.
+        * GitHub Pages não tem banco de dados. Para controle, a confirmação vai para seu Telegram via <b>Cloudflare Worker</b>
+        com: <b>nome</b>, <b>WhatsApp</b>, <b>créditos</b>, <b>valor</b>, <b>indicação</b> e <b>código</b>.
       </p>
       <div class="warn">Dica: abra com <b>?ref=JOAO01</b> (ex: <b>.../?ref=JOAO01</b>) para sugerir a indicação automaticamente.</div>
     </div>
@@ -474,7 +473,7 @@
           </div>
 
           <div class="warn">
-            Ao clicar em <b>“Eu fiz o pagamento”</b>, vai abrir seu Telegram com a mensagem pronta (igual o exemplo da sua foto).
+            Ao clicar em <b>“Eu fiz o pagamento”</b>, o site envia a confirmação pro seu <b>Worker</b> e ele manda no seu <b>Telegram</b>.
           </div>
         </div>
 
@@ -500,8 +499,11 @@
   // CONFIGURE AQUI
   // =======================
   const PIX_KEY = "SUA_CHAVE_PIX_AQUI";     // <= TROQUE
-  const TELEGRAM_USER = "SEUUSUARIO";       // <= TROQUE (sem @)
   const WHATSAPP_NUMBER = "55XXXXXXXXXXX";  // <= TROQUE (ex: 5511999999999)
+
+  // ✅ URL DO SEU WORKER (Cloudflare)
+  // Confere no botão "Visit" ou em Settings > Domains & Routes
+  const WORKER_URL = "https://avectrum-pay-notify.marlonarruda55.workers.dev/"; // <= TROQUE se estiver diferente
 
   // (opcional) lista de pessoas/códigos que podem indicar
   const INDICADORES = [
@@ -613,7 +615,7 @@
       lbl4.classList.add("active");
       document.getElementById("stepSmall").textContent = "ETAPA 4 DE 4";
       document.getElementById("stepBig").textContent = "Confirmar pagamento";
-      document.getElementById("stepSub").textContent = "Clique em “Eu fiz o pagamento” para enviar a confirmação no Telegram.";
+      document.getElementById("stepSub").textContent = "Clique em “Eu fiz o pagamento” para enviar a confirmação.";
     }
   }
 
@@ -664,7 +666,6 @@
       document.getElementById("sumTotal3").textContent = brl(p.price);
     }
 
-    // preview telegram
     const name = (document.getElementById("buyerName").value || "").trim();
     const whats = (document.getElementById("buyerWhats").value || "").trim();
 
@@ -675,7 +676,6 @@
     document.getElementById("tgRef").textContent = ref;
     document.getElementById("tgCode").textContent = purchaseCode || "—";
 
-    // step4 resumo
     document.getElementById("finalName").textContent = name || "—";
     document.getElementById("finalWhats").textContent = whats || "—";
     document.getElementById("finalPack").textContent = p ? pkgLabel(p) : "—";
@@ -685,7 +685,6 @@
   }
 
   function goStep(step){
-    // validações
     if(step === 2){
       if(selectedIndex < 0){
         alert("Selecione um pacote de créditos para continuar.");
@@ -704,7 +703,6 @@
         alert("Selecione a indicação.");
         return;
       }
-      // gera o código assim que tiver nome + whats válidos
       if(!purchaseCode){
         purchaseCode = generatePurchaseCode();
       }
@@ -782,9 +780,7 @@
     }
   }
 
-  function copyPix(){
-    copyText(PIX_KEY, "Chave Pix copiada!");
-  }
+  function copyPix(){ copyText(PIX_KEY, "Chave Pix copiada!"); }
 
   function copyCode(){
     if(!purchaseCode){
@@ -794,35 +790,56 @@
     copyText(purchaseCode, "Código copiado! Faça o Pix e depois confirme.");
   }
 
-  function sendTelegram({status}){
+  // ✅ AGORA ENVIA PRO CLOUDFARE WORKER (e ele manda no Telegram)
+  async function sendToWorker(status){
     const p = selectedPkg();
     const name = (document.getElementById("buyerName").value || "").trim();
-    const whats = (document.getElementById("buyerWhats").value || "").trim();
+    const whatsapp = (document.getElementById("buyerWhats").value || "").trim();
     const ref = getRefFinal();
+    const when = new Date().toLocaleString("pt-BR");
 
-    const now = new Date().toLocaleString("pt-BR");
+    const payload = {
+      name,
+      whatsapp,
+      code: purchaseCode || "—",
+      pack: p ? pkgLabel(p) : "—",
+      total: p ? brl(p.price) : "—",
+      ref,
+      when,
+      url: location.href,
+      status: status || "CLIENTE CLICOU: EU FIZ O PAGAMENTO"
+    };
 
-    const msg =
-      `Pagamento AVECTRUM%0A` +
-      `Status: ${encodeURIComponent(status || "—")}%0A` +
-      `Código: ${encodeURIComponent(purchaseCode || "—")}%0A` +
-      `Nome: ${encodeURIComponent(name)}%0A` +
-      `WhatsApp: ${encodeURIComponent(whats)}%0A` +
-      `Pacote: ${encodeURIComponent(p ? pkgLabel(p) : "—")}%0A` +
-      `Valor: ${encodeURIComponent(p ? brl(p.price) : "—")}%0A` +
-      `Indicação: ${encodeURIComponent(ref)}%0A` +
-      `Data/Hora: ${encodeURIComponent(now)}%0A` +
-      `URL: ${encodeURIComponent(location.href)}`;
+    const resp = await fetch(WORKER_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
 
-    const url = `https://t.me/${TELEGRAM_USER}?text=${msg}`;
-    window.open(url, "_blank");
+    const txt = await resp.text().catch(()=> "");
+    if(!resp.ok){
+      throw new Error(txt || "Falha ao enviar para o Worker");
+    }
+    return txt;
   }
 
-  function confirmPayment(){
-    // alerta “exemplo” (igual você pediu)
-    alert("✅ Confirmação pronta! Vou abrir seu Telegram para enviar a mensagem.");
-    showToast("Abrindo Telegram…");
-    sendTelegram({ status: "CLIENTE CLICOU: EU FIZ O PAGAMENTO" });
+  async function confirmPayment(){
+    if(!purchaseCode){
+      alert("Primeiro gere o código na etapa do Pix.");
+      return;
+    }
+
+    showToast("Enviando confirmação…");
+
+    try{
+      await sendToWorker("CLIENTE CLICOU: EU FIZ O PAGAMENTO");
+      alert("✅ Enviado! Chegou no seu Telegram.");
+      showToast("Enviado ✅");
+    }catch(err){
+      console.error(err);
+      alert("❌ Erro ao enviar. Confira a URL do Worker e tente novamente.");
+      showToast("Erro ❌");
+    }
   }
 
   function resetFlow(){
@@ -832,7 +849,6 @@
     document.getElementById("buyerWhats").value = "";
     document.querySelectorAll(".opt").forEach(el=>el.classList.remove("active"));
 
-    // reseta indicação pro padrão
     const sel = document.getElementById("refSelect");
     sel.value = "direto";
     document.getElementById("refOther").style.display = "none";
@@ -846,15 +862,12 @@
     const sel = document.getElementById("refSelect");
     sel.innerHTML = "";
 
-    // monta opções
     const opts = [...new Set(["direto", ...INDICADORES.filter(Boolean)])];
 
-    // se veio via URL (?ref=), coloca no topo
     if(refFromUrl){
       opts.unshift(refFromUrl);
     }
 
-    // remove repetidos
     const final = [...new Set(opts)];
 
     final.forEach(v=>{
@@ -864,13 +877,11 @@
       sel.appendChild(o);
     });
 
-    // opção "outro"
     const other = document.createElement("option");
     other.value = "__other__";
     other.textContent = "Outro (digitar)";
     sel.appendChild(other);
 
-    // preseleciona
     if(refFromUrl){
       sel.value = refFromUrl;
     } else {
@@ -888,11 +899,7 @@
     });
 
     document.getElementById("refOther").addEventListener("input", syncSummary);
-    document.getElementById("buyerName").addEventListener("input", ()=>{
-      // se o cliente mudar nome/whats depois, mantém o mesmo código (controle).
-      // Se quiser gerar novo ao alterar, me fala que eu mudo.
-      syncSummary();
-    });
+    document.getElementById("buyerName").addEventListener("input", syncSummary);
     document.getElementById("buyerWhats").addEventListener("input", syncSummary);
   }
 
