@@ -1,114 +1,749 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>AVECTRUM - Indicação</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>AVECTRUM — Indicação</title>
 
-<style>
-body {
-  font-family: Arial, sans-serif;
-  background:#0f0f0f;
-  color:#fff;
-  padding:20px;
-}
-.step { display:none; max-width:400px; margin:auto; }
-.step.active { display:block; }
-button {
-  width:100%;
-  padding:14px;
-  margin-top:15px;
-  background:#ff5757;
-  border:none;
-  color:#fff;
-  font-size:16px;
-  cursor:pointer;
-  border-radius:6px;
-}
-input {
-  width:100%;
-  padding:12px;
-  margin-top:10px;
-  border-radius:6px;
-  border:none;
-}
-.card {
-  border:1px solid #333;
-  padding:15px;
-  margin-top:10px;
-  border-radius:8px;
-  cursor:pointer;
-}
-.card:hover { background:#1a1a1a; }
-</style>
+  <style>
+    :root{
+      --bg:#07080a;
+      --card:#0d1015;
+      --card2:#0b0e13;
+      --stroke:#1f2430;
+      --text:#e9eef6;
+      --muted:#98a2b3;
+      --gold:#d6b25e;
+      --gold2:#b9923b;
+      --accent:#ff5757;
+      --ok:#36c28a;
+      --shadow: 0 12px 30px rgba(0,0,0,.55);
+      --radius: 18px;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Helvetica Neue", sans-serif;
+      color:var(--text);
+      background:
+        radial-gradient(1100px 500px at 20% -20%, rgba(214,178,94,.15), transparent 60%),
+        radial-gradient(1100px 500px at 80% 0%, rgba(255,87,87,.10), transparent 60%),
+        linear-gradient(180deg, #050608, #07080a 55%, #050608);
+      min-height:100vh;
+      padding:28px 16px 50px;
+    }
+
+    .wrap{max-width:980px;margin:0 auto}
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin-bottom:16px;
+    }
+    .brand{
+      font-weight:800;
+      letter-spacing:.6px;
+      font-size:18px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .pill{
+      font-size:12px;
+      padding:6px 10px;
+      border:1px solid rgba(214,178,94,.25);
+      color:rgba(214,178,94,.95);
+      border-radius:999px;
+      background:rgba(214,178,94,.06);
+    }
+    .btnGhost{
+      border:1px solid rgba(255,255,255,.12);
+      background:rgba(255,255,255,.03);
+      color:var(--text);
+      padding:10px 14px;
+      border-radius:999px;
+      cursor:pointer;
+      transition:.2s;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-weight:600;
+      font-size:13px;
+    }
+    .btnGhost:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.2)}
+
+    .hero{
+      display:grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap:14px;
+      margin:10px 0 16px;
+    }
+    @media (max-width:860px){ .hero{grid-template-columns:1fr} }
+
+    .card{
+      background:linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.02));
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:var(--radius);
+      padding:18px;
+      box-shadow: var(--shadow);
+    }
+    .card h1{
+      margin:0 0 8px;
+      font-size:28px;
+      line-height:1.1;
+      letter-spacing:.2px;
+    }
+    .card p{margin:0;color:var(--muted);font-size:14px;line-height:1.45}
+
+    .priceHint{
+      margin-top:12px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .priceHint b{color:var(--gold)}
+    .mini{
+      font-size:12px;
+      color:var(--muted);
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(0,0,0,.25);
+      padding:6px 10px;
+      border-radius:999px;
+    }
+
+    .panel{
+      background:linear-gradient(180deg, rgba(214,178,94,.10), rgba(255,255,255,.02));
+      border:1px solid rgba(214,178,94,.22);
+      border-radius:var(--radius);
+      padding:16px;
+      display:flex;
+      gap:12px;
+      align-items:flex-start;
+    }
+    .avatar{
+      width:54px;height:54px;border-radius:14px;
+      border:1px solid rgba(255,255,255,.12);
+      background: radial-gradient(circle at 30% 30%, rgba(255,255,255,.12), rgba(255,255,255,.03));
+      display:grid;place-items:center;
+      font-weight:900;
+      color:rgba(214,178,94,.95);
+    }
+    .panel h3{margin:0;font-size:14px;letter-spacing:.4px}
+    .panel .name{margin:2px 0 0;font-weight:800;font-size:18px}
+    .panel .meta{margin-top:4px;color:var(--muted);font-size:13px}
+
+    .stepsCard{
+      margin-top:14px;
+      background:rgba(0,0,0,.28);
+      border:1px solid rgba(255,255,255,.08);
+      border-radius:var(--radius);
+      padding:16px;
+    }
+
+    .stepHeader{
+      display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .stepTitle{
+      display:flex;flex-direction:column;gap:4px;
+    }
+    .stepTitle small{color:rgba(214,178,94,.9);letter-spacing:.12em;text-transform:uppercase;font-size:11px}
+    .stepTitle b{font-size:22px}
+    .stepTitle span{color:var(--muted);font-size:13px}
+
+    .progress{
+      display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    }
+    .dot{
+      width:10px;height:10px;border-radius:999px;
+      background:rgba(255,255,255,.16);
+      border:1px solid rgba(255,255,255,.14);
+    }
+    .dot.active{background:rgba(214,178,94,.95);border-color:rgba(214,178,94,.55)}
+    .line{
+      width:70px;height:2px;background:rgba(255,255,255,.14);
+    }
+    .line.active{background:rgba(214,178,94,.55)}
+    .stepLabel{
+      font-size:11px;color:rgba(255,255,255,.65);letter-spacing:.08em;text-transform:uppercase;
+    }
+    .stepLabel.active{color:rgba(214,178,94,.95)}
+
+    .grid2{
+      display:grid;
+      grid-template-columns: 1.1fr .9fr;
+      gap:14px;
+      margin-top:14px;
+    }
+    @media (max-width:860px){ .grid2{grid-template-columns:1fr} }
+
+    .box{
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(255,255,255,.02);
+      border-radius:16px;
+      padding:14px;
+    }
+    .boxTitle{
+      font-size:12px;
+      letter-spacing:.12em;
+      text-transform:uppercase;
+      color:rgba(255,255,255,.65);
+      margin-bottom:8px;
+    }
+    .infoList{
+      margin:0;padding-left:16px;color:var(--muted);font-size:13px;line-height:1.55
+    }
+    .infoList b{color:var(--text)}
+    .row{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+      margin-top:8px;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .row strong{color:var(--text)}
+    .total{
+      font-size:22px;font-weight:900;color:var(--gold);
+    }
+
+    .sliderWrap{
+      margin-top:12px;
+      padding:12px;
+      border-radius:16px;
+      border:1px solid rgba(255,255,255,.08);
+      background:rgba(0,0,0,.25);
+    }
+    input[type="range"]{
+      width:100%;
+      accent-color: var(--gold);
+    }
+    .daysRow{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+      margin-top:10px;
+      color:var(--muted);
+      font-size:13px;
+    }
+    .counter{
+      display:flex;align-items:center;gap:8px;
+      background:rgba(255,255,255,.03);
+      border:1px solid rgba(255,255,255,.08);
+      padding:8px 10px;border-radius:999px;
+    }
+    .counter button{
+      width:32px;height:32px;border-radius:999px;border:1px solid rgba(255,255,255,.10);
+      background:rgba(255,255,255,.04); color:var(--text); cursor:pointer;
+      font-weight:900;
+    }
+    .counter button:hover{border-color:rgba(255,255,255,.22)}
+    .counter span{min-width:30px;text-align:center;font-weight:800;color:var(--text)}
+
+    .inputs{
+      display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:12px;
+    }
+    @media (max-width:560px){ .inputs{grid-template-columns:1fr} }
+    .inputs input{
+      width:100%;
+      padding:12px 12px;
+      border-radius:12px;
+      border:1px solid rgba(255,255,255,.10);
+      background:rgba(0,0,0,.25);
+      color:var(--text);
+      outline:none;
+    }
+    .inputs input::placeholder{color:rgba(255,255,255,.35)}
+    .inputs input:focus{border-color:rgba(214,178,94,.45)}
+
+    .actions{
+      display:flex; gap:10px; flex-wrap:wrap; margin-top:14px;
+    }
+    .btn{
+      padding:12px 14px;
+      border-radius:999px;
+      border:1px solid rgba(214,178,94,.35);
+      background:linear-gradient(180deg, rgba(214,178,94,.22), rgba(214,178,94,.10));
+      color:rgba(255,255,255,.92);
+      font-weight:800;
+      cursor:pointer;
+      transition:.2s;
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      min-width: 220px;
+    }
+    .btn:hover{transform:translateY(-1px);border-color:rgba(214,178,94,.55)}
+    .btn2{
+      padding:12px 14px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(255,255,255,.04);
+      color:rgba(255,255,255,.9);
+      font-weight:800;
+      cursor:pointer;
+      transition:.2s;
+      display:inline-flex;align-items:center;justify-content:center;gap:8px;
+      min-width: 220px;
+    }
+    .btn2:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.24)}
+
+    .warn{
+      margin-top:10px;
+      font-size:12px;
+      color:rgba(255,255,255,.55);
+    }
+    .pixBox{
+      margin-top:10px;
+      padding:12px;
+      border-radius:14px;
+      border:1px dashed rgba(214,178,94,.40);
+      background:rgba(214,178,94,.07);
+      color:rgba(255,255,255,.92);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+    .pixKey{
+      font-weight:900;
+      letter-spacing:.3px;
+      word-break:break-all;
+      color:rgba(214,178,94,.95);
+    }
+    .copyBtn{
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.25);
+      color:var(--text);
+      padding:10px 12px;
+      border-radius:12px;
+      cursor:pointer;
+      font-weight:800;
+    }
+    .copyBtn:hover{border-color:rgba(255,255,255,.25)}
+    .toast{
+      position:fixed;left:50%;bottom:18px;transform:translateX(-50%);
+      background:rgba(0,0,0,.72);
+      border:1px solid rgba(255,255,255,.12);
+      padding:10px 12px;border-radius:999px;
+      color:rgba(255,255,255,.92);
+      font-size:13px;
+      display:none;
+      z-index:50;
+    }
+  </style>
 </head>
 
 <body>
+  <div class="wrap">
 
-<h2 style="text-align:center;">AVECTRUM</h2>
+    <div class="topbar">
+      <div class="brand">
+        AVECTRUM <span class="pill">INDICAÇÃO</span>
+      </div>
+      <a class="btnGhost" href="#" onclick="resetFlow();return false;">↩ Reiniciar</a>
+    </div>
 
-<!-- STEP 1 -->
-<div class="step active" id="step1">
-  <h3>Escolha seu pacote</h3>
+    <div class="hero">
+      <div class="card">
+        <h1>Plano AVECTRUM</h1>
+        <p>Escolha por quantos dias você quer ativar o plano. No final, você verá o <b>Pix</b> e poderá enviar a confirmação pelo <b>Telegram</b>.</p>
 
-  <div class="card" onclick="selectPackage('100 créditos','R$ 20')">100 créditos — R$ 20</div>
-  <div class="card" onclick="selectPackage('300 créditos','R$ 50')">300 créditos — R$ 50</div>
+        <div class="priceHint">
+          <span class="mini">Valor fixo: <b id="pricePerDayText">R$ 6,00</b> por dia</span>
+          <span class="mini">Mínimo 1 dia, máximo 60 dias</span>
+          <span class="mini">Indicação: <b id="refText">direto</b></span>
+        </div>
+      </div>
 
-</div>
+      <div class="card">
+        <div class="panel">
+          <div class="avatar">A</div>
+          <div>
+            <h3>SEU PLANO</h3>
+            <div class="name">Pedido de ativação</div>
+            <div class="meta">Fluxo em 3 etapas • Dias → Revisar → Pix & confirmação</div>
+          </div>
+        </div>
 
-<!-- STEP 2 -->
-<div class="step" id="step2">
-  <h3>Seus dados</h3>
-  <input id="nome" placeholder="Seu nome">
-  <input id="whats" placeholder="WhatsApp">
-  <button onclick="goStep3()">Continuar</button>
-</div>
+        <div class="warn">
+          * Esse site é estático (GitHub Pages). A confirmação é enviada via Telegram com todos os dados (nome, WhatsApp, dias, total e indicação).
+        </div>
+      </div>
+    </div>
 
-<!-- STEP 3 -->
-<div class="step" id="step3">
-  <h3>Pagamento via PIX</h3>
-  <p><strong>Chave PIX:</strong></p>
-  <p id="pix">SUA_CHAVE_PIX_AQUI</p>
+    <div class="stepsCard">
+      <div class="stepHeader">
+        <div class="stepTitle">
+          <small id="stepSmall">ETAPA 1 DE 3</small>
+          <b id="stepBig">Escolher dias</b>
+          <span id="stepSub">Defina quantos dias você quer ativar.</span>
+        </div>
 
-  <button onclick="sendTelegram()">Enviar comprovante no Telegram</button>
-</div>
+        <div class="progress" aria-label="Progresso">
+          <span class="dot active" id="dot1"></span><span class="line" id="line1"></span>
+          <span class="dot" id="dot2"></span><span class="line" id="line2"></span>
+          <span class="dot" id="dot3"></span>
+          <span class="stepLabel active" id="lbl1">Dias</span>
+          <span class="stepLabel" id="lbl2">Revisar</span>
+          <span class="stepLabel" id="lbl3">Pix</span>
+        </div>
+      </div>
 
-<script>
-let pacote = '';
-let valor = '';
+      <!-- STEP 1 -->
+      <section id="step1">
+        <div class="grid2">
+          <div class="box">
+            <div class="boxTitle">Como funciona?</div>
+            <ul class="infoList">
+              <li>Você escolhe <b>quantos dias</b> quer ativar.</li>
+              <li>Na próxima tela você <b>revisa</b> tudo.</li>
+              <li>No final aparece o <b>Pix</b> e você envia a confirmação pelo <b>Telegram</b>.</li>
+            </ul>
 
-function selectPackage(p, v) {
-  pacote = p;
-  valor = v;
-  changeStep(1,2);
-}
+            <div class="sliderWrap">
+              <div class="row">
+                <strong>Arraste para escolher os dias</strong>
+                <span>Valor total: <span class="total" id="total1">R$ 0,00</span></span>
+              </div>
 
-function goStep3() {
-  changeStep(2,3);
-}
+              <input type="range" min="1" max="60" value="1" id="daysRange" />
 
-function changeStep(from, to) {
-  document.getElementById('step'+from).classList.remove('active');
-  document.getElementById('step'+to).classList.add('active');
-}
+              <div class="daysRow">
+                <span>Dias selecionados: <strong id="daysText">1</strong></span>
 
-function sendTelegram() {
-  const nome = document.getElementById('nome').value;
-  const whats = document.getElementById('whats').value;
+                <div class="counter">
+                  <button type="button" onclick="incDays(-1)">−</button>
+                  <span id="daysBadge">1</span>
+                  <button type="button" onclick="incDays(1)">+</button>
+                </div>
+              </div>
 
-  const ref = new URLSearchParams(window.location.search).get('ref') || 'direto';
+              <div class="inputs">
+                <input id="buyerName" placeholder="Seu nome" />
+                <input id="buyerWhats" placeholder="Seu WhatsApp" />
+              </div>
 
-  const msg =
-    `Compra AVECTRUM%0A` +
-    `Nome: ${nome}%0A` +
-    `WhatsApp: ${whats}%0A` +
-    `Pacote: ${pacote}%0A` +
-    `Valor: ${valor}%0A` +
-    `Indicação: ${ref}`;
+              <div class="actions">
+                <button class="btn" type="button" onclick="goStep(2)">Continuar para revisão →</button>
+              </div>
+              <div class="warn">Ao continuar, você verá a simulação e poderá confirmar.</div>
+            </div>
+          </div>
 
-  window.open(`https://t.me/SEU_USUARIO_TELEGRAM?text=${msg}`, '_blank');
-}
-</script>
+          <div class="box">
+            <div class="boxTitle">Resumo rápido</div>
+            <div class="row"><span>Valor por dia</span><strong id="ppd1">R$ 6,00</strong></div>
+            <div class="row"><span>Dias</span><strong id="daysSum1">1</strong></div>
+            <div class="row"><span>Total</span><strong id="totalSum1">R$ 6,00</strong></div>
+            <div class="row"><span>Indicação</span><strong id="refSum1">direto</strong></div>
+          </div>
+        </div>
+      </section>
 
+      <!-- STEP 2 -->
+      <section id="step2" style="display:none;">
+        <div class="grid2">
+          <div class="box">
+            <div class="boxTitle">Resumo do pedido</div>
+            <div class="row"><span>Dias selecionados</span><strong id="daysReview">1</strong></div>
+            <div class="row"><span>Período estimado</span><strong id="periodReview">--/--/---- até --/--/----</strong></div>
+            <div class="row"><span>Valor por dia</span><strong id="ppd2">R$ 6,00</strong></div>
+            <div class="row"><span>Valor total</span><strong class="total" id="total2">R$ 6,00</strong></div>
+
+            <div class="box" style="margin-top:14px;background:rgba(214,178,94,.06);border-color:rgba(214,178,94,.18)">
+              <div class="boxTitle">Como funciona esse pagamento?</div>
+              <ul class="infoList">
+                <li>Você está confirmando um pedido com <b id="daysReview2">1</b> dia(s).</li>
+                <li>Na próxima tela você verá a <b>chave Pix</b>.</li>
+                <li>Depois de pagar, clique em <b>Enviar no Telegram</b> para enviar os dados.</li>
+                <li>A indicação (<b id="refReview">direto</b>) vai junto para sabermos <b>quem indicou quem</b>.</li>
+              </ul>
+            </div>
+
+            <div class="actions">
+              <button class="btn2" type="button" onclick="goStep(1)">← Alterar dias</button>
+              <button class="btn" type="button" onclick="goStep(3)">Continuar para Pix →</button>
+            </div>
+
+            <div class="warn">Você ainda pode voltar e ajustar antes de ver o Pix.</div>
+          </div>
+
+          <div class="box">
+            <div class="boxTitle">Dados informados</div>
+            <div class="row"><span>Nome</span><strong id="nameReview">—</strong></div>
+            <div class="row"><span>WhatsApp</span><strong id="whatsReview">—</strong></div>
+            <div class="row"><span>Indicação</span><strong id="refSum2">direto</strong></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 3 -->
+      <section id="step3" style="display:none;">
+        <div class="grid2">
+          <div class="box">
+            <div class="boxTitle">Pagamento via Pix</div>
+            <p style="margin:0;color:var(--muted);font-size:13px;line-height:1.45">
+              Faça o pagamento e depois clique no botão para enviar a confirmação no Telegram.
+            </p>
+
+            <div class="pixBox">
+              <div>
+                <div style="font-size:12px;color:rgba(255,255,255,.65);letter-spacing:.08em;text-transform:uppercase">Chave Pix</div>
+                <div class="pixKey" id="pixKeyUI">SUA_CHAVE_PIX</div>
+              </div>
+              <button class="copyBtn" type="button" onclick="copyPix()">Copiar</button>
+            </div>
+
+            <div class="box" style="margin-top:14px;">
+              <div class="boxTitle">Seu pedido</div>
+              <div class="row"><span>Dias</span><strong id="days3">1</strong></div>
+              <div class="row"><span>Total</span><strong class="total" id="total3">R$ 6,00</strong></div>
+              <div class="row"><span>Indicação</span><strong id="ref3">direto</strong></div>
+            </div>
+
+            <div class="actions">
+              <button class="btn2" type="button" onclick="goStep(2)">← Voltar</button>
+              <button class="btn" type="button" onclick="sendTelegram()">Enviar confirmação no Telegram</button>
+            </div>
+
+            <div class="warn">Dica: abra com <b>?ref=JOAO01</b> para registrar de quem veio (ex: <b>.../?ref=JOAO01</b>).</div>
+          </div>
+
+          <div class="box">
+            <div class="boxTitle">O que será enviado no Telegram</div>
+            <ul class="infoList">
+              <li><b>Nome</b> e <b>WhatsApp</b></li>
+              <li><b>Dias</b> e <b>Valor total</b></li>
+              <li><b>Indicação</b> (ref)</li>
+              <li><b>Data/hora</b> do envio</li>
+            </ul>
+            <div class="warn">Isso te dá o controle de “quem comprou de quem” sem precisar de banco de dados.</div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="toast" id="toast">Copiado!</div>
+
+  <script>
+    // =======================
+    // CONFIGURE AQUI (2 COISAS)
+    // =======================
+    const PRICE_PER_DAY = 6.00;                 // R$ por dia
+    const PIX_KEY = "SUA_CHAVE_PIX_AQUI";       // <= TROQUE
+    const TELEGRAM_USER = "SEUUSUARIO";         // <= TROQUE (sem @)
+
+    // =======================
+    // STATE
+    // =======================
+    const qs = new URLSearchParams(location.search);
+    const ref = (qs.get("ref") || "direto").trim();
+
+    let days = 1;
+
+    // =======================
+    // HELPERS
+    // =======================
+    const brl = (n) => n.toLocaleString("pt-BR", { style:"currency", currency:"BRL" });
+
+    function addDays(date, add){
+      const d = new Date(date);
+      d.setDate(d.getDate() + add);
+      return d;
+    }
+
+    function fmtDate(d){
+      return d.toLocaleDateString("pt-BR");
+    }
+
+    function totalValue(){
+      return PRICE_PER_DAY * days;
+    }
+
+    function showToast(text){
+      const t = document.getElementById("toast");
+      t.textContent = text || "Copiado!";
+      t.style.display = "block";
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(()=> t.style.display="none", 1300);
+    }
+
+    function ensureBasics(){
+      document.getElementById("pricePerDayText").textContent = brl(PRICE_PER_DAY);
+      document.getElementById("ppd1").textContent = brl(PRICE_PER_DAY);
+      document.getElementById("ppd2").textContent = brl(PRICE_PER_DAY);
+
+      document.getElementById("refText").textContent = ref;
+      document.getElementById("refSum1").textContent = ref;
+      document.getElementById("refSum2").textContent = ref;
+      document.getElementById("refReview").textContent = ref;
+      document.getElementById("ref3").textContent = ref;
+
+      document.getElementById("pixKeyUI").textContent = PIX_KEY;
+    }
+
+    function syncStep1UI(){
+      const t = totalValue();
+      document.getElementById("daysRange").value = days;
+
+      document.getElementById("daysText").textContent = days;
+      document.getElementById("daysBadge").textContent = days;
+
+      document.getElementById("daysSum1").textContent = days;
+      document.getElementById("total1").textContent = brl(t);
+      document.getElementById("totalSum1").textContent = brl(t);
+    }
+
+    function syncReview(){
+      const name = (document.getElementById("buyerName").value || "").trim();
+      const whats = (document.getElementById("buyerWhats").value || "").trim();
+
+      document.getElementById("nameReview").textContent = name || "—";
+      document.getElementById("whatsReview").textContent = whats || "—";
+
+      document.getElementById("daysReview").textContent = days;
+      document.getElementById("daysReview2").textContent = days;
+
+      const today = new Date();
+      const start = today;
+      const end = addDays(today, Math.max(days - 1, 0));
+      document.getElementById("periodReview").textContent = `${fmtDate(start)} até ${fmtDate(end)}`;
+
+      document.getElementById("total2").textContent = brl(totalValue());
+
+      document.getElementById("days3").textContent = days;
+      document.getElementById("total3").textContent = brl(totalValue());
+    }
+
+    // =======================
+    // STEPS NAV
+    // =======================
+    function setProgress(step){
+      const dot1 = document.getElementById("dot1");
+      const dot2 = document.getElementById("dot2");
+      const dot3 = document.getElementById("dot3");
+      const line1 = document.getElementById("line1");
+      const line2 = document.getElementById("line2");
+      const lbl1 = document.getElementById("lbl1");
+      const lbl2 = document.getElementById("lbl2");
+      const lbl3 = document.getElementById("lbl3");
+
+      [dot1,dot2,dot3].forEach(d=>d.classList.remove("active"));
+      [line1,line2].forEach(l=>l.classList.remove("active"));
+      [lbl1,lbl2,lbl3].forEach(l=>l.classList.remove("active"));
+
+      if(step===1){
+        dot1.classList.add("active");
+        lbl1.classList.add("active");
+        document.getElementById("stepSmall").textContent = "ETAPA 1 DE 3";
+        document.getElementById("stepBig").textContent = "Escolher dias";
+        document.getElementById("stepSub").textContent = "Defina quantos dias você quer ativar.";
+      }
+      if(step===2){
+        dot1.classList.add("active"); dot2.classList.add("active");
+        line1.classList.add("active");
+        lbl2.classList.add("active");
+        document.getElementById("stepSmall").textContent = "ETAPA 2 DE 3";
+        document.getElementById("stepBig").textContent = "Revisar pedido";
+        document.getElementById("stepSub").textContent = "Confira tudo antes de ir para o Pix.";
+      }
+      if(step===3){
+        dot1.classList.add("active"); dot2.classList.add("active"); dot3.classList.add("active");
+        line1.classList.add("active"); line2.classList.add("active");
+        lbl3.classList.add("active");
+        document.getElementById("stepSmall").textContent = "ETAPA 3 DE 3";
+        document.getElementById("stepBig").textContent = "Pix & confirmação";
+        document.getElementById("stepSub").textContent = "Faça o Pix e envie a confirmação no Telegram.";
+      }
+    }
+
+    function goStep(step){
+      // validações simples (sem travar demais)
+      if(step === 2){
+        const name = (document.getElementById("buyerName").value || "").trim();
+        const whats = (document.getElementById("buyerWhats").value || "").trim();
+        if(!name || !whats){
+          alert("Preencha seu nome e WhatsApp para continuar.");
+          return;
+        }
+      }
+
+      document.getElementById("step1").style.display = (step===1) ? "block" : "none";
+      document.getElementById("step2").style.display = (step===2) ? "block" : "none";
+      document.getElementById("step3").style.display = (step===3) ? "block" : "none";
+
+      setProgress(step);
+      syncReview();
+      window.scrollTo({top:0, behavior:"smooth"});
+    }
+
+    function incDays(delta){
+      days = Math.min(60, Math.max(1, days + delta));
+      syncStep1UI();
+      syncReview();
+    }
+
+    function resetFlow(){
+      days = 1;
+      document.getElementById("buyerName").value = "";
+      document.getElementById("buyerWhats").value = "";
+      syncStep1UI();
+      goStep(1);
+    }
+
+    // =======================
+    // PIX + TELEGRAM
+    // =======================
+    async function copyPix(){
+      try{
+        await navigator.clipboard.writeText(PIX_KEY);
+        showToast("Chave Pix copiada!");
+      }catch(e){
+        // fallback
+        const temp = document.createElement("textarea");
+        temp.value = PIX_KEY;
+        document.body.appendChild(temp);
+        temp.select();
+        document.execCommand("copy");
+        temp.remove();
+        showToast("Chave Pix copiada!");
+      }
+    }
+
+    function sendTelegram(){
+      const name = (document.getElementById("buyerName").value || "").trim();
+      const whats = (document.getElementById("buyerWhats").value || "").trim();
+
+      const now = new Date();
+      const msg =
+        `Pedido AVECTRUM%0A` +
+        `Nome: ${encodeURIComponent(name)}%0A` +
+        `WhatsApp: ${encodeURIComponent(whats)}%0A` +
+        `Dias: ${days}%0A` +
+        `Valor por dia: ${encodeURIComponent(brl(PRICE_PER_DAY))}%0A` +
+        `Total: ${encodeURIComponent(brl(totalValue()))}%0A` +
+        `Indicação: ${encodeURIComponent(ref)}%0A` +
+        `Data/Hora: ${encodeURIComponent(now.toLocaleString("pt-BR"))}%0A` +
+        `Site: ${encodeURIComponent(location.href)}`;
+
+      const url = `https://t.me/${TELEGRAM_USER}?text=${msg}`;
+      window.open(url, "_blank");
+    }
+
+    // =======================
+    // INIT
+    // =======================
+    document.getElementById("daysRange").addEventListener("input", (e)=>{
+      days = parseInt(e.target.value, 10) || 1;
+      syncStep1UI();
+      syncReview();
+    });
+
+    ensureBasics();
+    syncStep1UI();
+    syncReview();
+    setProgress(1);
+  </script>
 </body>
 </html>
