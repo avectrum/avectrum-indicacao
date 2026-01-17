@@ -151,42 +151,37 @@
       margin-bottom:8px;
     }
 
-    .cards{
+    /* ✅ NOVO: seletor de pacotes */
+    .selectWrap{
+      margin-top:8px;
       display:grid;
-      grid-template-columns: repeat(2, 1fr);
       gap:10px;
     }
-    @media (max-width:560px){ .cards{grid-template-columns:1fr} }
-
-    .opt{
+    .selectHint{
+      font-size:12px;
+      color:rgba(255,255,255,.55);
+      line-height:1.4;
+    }
+    .packageDetails{
       border:1px solid rgba(255,255,255,.10);
-      background:rgba(0,0,0,.25);
-      border-radius:16px;
-      padding:14px;
-      cursor:pointer;
-      transition:.18s;
-      position:relative;
+      background:rgba(0,0,0,.22);
+      border-radius:14px;
+      padding:12px;
     }
-    .opt:hover{transform:translateY(-1px);border-color:rgba(255,255,255,.18)}
-    .opt.active{
-      border-color:rgba(255,87,87,.65);
-      box-shadow: 0 0 0 3px rgba(255,87,87,.12);
+    .packageDetails .k{
+      font-size:12px;color:rgba(255,255,255,.62);
     }
-    .opt .top{
-      display:flex;align-items:center;justify-content:space-between;gap:10px;
+    .packageDetails .v{
+      margin-top:4px;
+      font-weight:1000;
+      font-size:14px;
+      color:rgba(255,255,255,.92);
     }
-    .opt .name{font-weight:1000;font-size:16px}
-    .opt .price{font-weight:1000;color:var(--red);font-size:16px}
-    .opt .desc{margin-top:6px;color:var(--muted);font-size:13px}
-    .tag{
-      display:inline-block;
-      margin-top:8px;
-      font-size:11px;
-      padding:5px 8px;
-      border-radius:999px;
-      border:1px solid rgba(255,255,255,.12);
-      color:rgba(255,255,255,.82);
-      background:rgba(255,255,255,.03);
+    .packageDetails .price{
+      margin-top:10px;
+      font-weight:1100;
+      font-size:18px;
+      color:var(--red);
     }
 
     .inputs{
@@ -207,7 +202,6 @@
       background:#0e0f14;
       color:#e9eef6;
     }
-
     input::placeholder{color:rgba(255,255,255,.35)}
     input:focus, select:focus{border-color:rgba(255,87,87,.45)}
 
@@ -353,7 +347,24 @@
         <div class="box">
           <div class="boxTitle">Selecione um pacote</div>
 
-          <div id="packages" class="cards"></div>
+          <!-- ✅ TROCA: agora é dropdown com seta -->
+          <div class="selectWrap">
+            <select id="packageSelect">
+              <option value="-1">Selecione um pacote...</option>
+            </select>
+
+            <div class="packageDetails" id="packageDetails" style="display:none;">
+              <div class="k">Você selecionou:</div>
+              <div class="v" id="pkgTextUI">—</div>
+              <div class="k" style="margin-top:8px;">Total de créditos:</div>
+              <div class="v" id="pkgTotalUI">—</div>
+              <div class="price" id="pkgPriceUI">—</div>
+            </div>
+
+            <div class="selectHint">
+              Use a seta do seletor para abrir a lista e escolher o plano.
+            </div>
+          </div>
 
           <div class="actions">
             <button class="btn" type="button" onclick="goStep(2)">Continuar →</button>
@@ -502,7 +513,6 @@
 
   // (opcional) lista de pessoas/códigos que podem indicar
   const INDICADORES = [
-    
     "GUTO",
     "TKZ Community"
   ];
@@ -635,7 +645,18 @@
     document.getElementById("sumRef2").textContent = ref;
     document.getElementById("sumRef3").textContent = ref;
 
+    // ✅ Detalhe do pacote (novo UI)
+    const details = document.getElementById("packageDetails");
+    const pkgTextUI = document.getElementById("pkgTextUI");
+    const pkgTotalUI = document.getElementById("pkgTotalUI");
+    const pkgPriceUI = document.getElementById("pkgPriceUI");
+
     if(!p){
+      details.style.display = "none";
+      pkgTextUI.textContent = "—";
+      pkgTotalUI.textContent = "—";
+      pkgPriceUI.textContent = "—";
+
       document.getElementById("miniTotal").textContent = brl(0);
       document.getElementById("miniPack").textContent = "—";
       document.getElementById("sumPack1").textContent = "—";
@@ -645,7 +666,14 @@
       document.getElementById("sumTotal2").textContent = brl(0);
       document.getElementById("sumTotal3").textContent = brl(0);
     } else {
+      details.style.display = "block";
+      const totalCredits = p.base + p.bonus;
       const packText = pkgLabel(p);
+
+      pkgTextUI.textContent = packText;
+      pkgTotalUI.textContent = `${totalCredits} créditos`;
+      pkgPriceUI.textContent = brl(p.price);
+
       document.getElementById("miniPack").textContent = packText;
       document.getElementById("sumPack1").textContent = packText;
       document.getElementById("sumPack2").textContent = packText;
@@ -708,37 +736,29 @@
     window.scrollTo({top:0, behavior:"smooth"});
   }
 
-  function renderPackages(){
-    const host = document.getElementById("packages");
-    host.innerHTML = "";
+  // ✅ NOVO: render do select (dropdown)
+  function renderPackagesSelect(){
+    const sel = document.getElementById("packageSelect");
+    sel.innerHTML = `<option value="-1">Selecione um pacote...</option>`;
 
     PACKAGES.forEach((p, idx) => {
-      const div = document.createElement("div");
-      div.className = "opt";
-      div.onclick = () => selectPackage(idx);
-
       const totalCredits = p.base + p.bonus;
-      const bonusText = p.bonus > 0 ? `BÔNUS +${p.bonus}` : "SEM BÔNUS";
+      const label = (p.bonus > 0)
+        ? `${p.base} + ${p.bonus} bônus (${totalCredits}) — ${brl(p.price)}`
+        : `${p.base} créditos — ${brl(p.price)}`;
 
-      div.innerHTML = `
-        <div class="top">
-          <div class="name">${p.base}${p.bonus>0 ? ` + ${p.bonus}` : ""} créditos</div>
-          <div class="price">${brl(p.price)}</div>
-        </div>
-        <div class="desc">Total: <b>${totalCredits}</b> créditos</div>
-        <span class="tag">${bonusText}</span>
-      `;
-
-      host.appendChild(div);
+      const o = document.createElement("option");
+      o.value = String(idx);
+      o.textContent = label;
+      sel.appendChild(o);
     });
-  }
 
-  function selectPackage(idx){
-    selectedIndex = idx;
-    document.querySelectorAll(".opt").forEach((el,i)=>{
-      el.classList.toggle("active", i === idx);
+    sel.addEventListener("change", () => {
+      const v = parseInt(sel.value, 10);
+      selectedIndex = Number.isFinite(v) ? v : -1;
+      if(selectedIndex < 0) selectedIndex = -1;
+      syncSummary();
     });
-    syncSummary();
   }
 
   function showToast(text){
@@ -774,7 +794,6 @@
     copyText(purchaseCode, "Código copiado! Faça o Pix e depois confirme.");
   }
 
-  // ✅ AQUI: abre o WhatsApp NO SEU NÚMERO com a mensagem pronta
   function confirmPayment(){
     if(!purchaseCode){
       alert("Primeiro gere o código na etapa do Pix.");
@@ -811,7 +830,10 @@
     purchaseCode = "";
     document.getElementById("buyerName").value = "";
     document.getElementById("buyerWhats").value = "";
-    document.querySelectorAll(".opt").forEach(el=>el.classList.remove("active"));
+
+    // reset select pacote
+    const pkgSel = document.getElementById("packageSelect");
+    pkgSel.value = "-1";
 
     const sel = document.getElementById("refSelect");
     sel.value = "direto";
@@ -862,7 +884,8 @@
   // INIT
   document.getElementById("pixKeyUI").textContent = PIX_KEY;
   document.getElementById("whatsNumberUI").textContent = WHATSAPP_NUMBER;
-  renderPackages();
+
+  renderPackagesSelect();   // ✅ agora é select
   setupIndicacao();
   setProgress(1);
   syncSummary();
