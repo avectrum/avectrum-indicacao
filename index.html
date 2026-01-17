@@ -319,8 +319,8 @@
 
     <div class="card">
       <p class="subtitle" style="margin:0;">
-        * GitHub Pages não tem banco de dados. Para controle, a confirmação vai para seu Telegram via <b>Cloudflare Worker</b>
-        com: <b>nome</b>, <b>WhatsApp</b>, <b>créditos</b>, <b>valor</b>, <b>indicação</b> e <b>código</b>.
+        * GitHub Pages não tem banco de dados. Para controle, a confirmação abre seu <b>WhatsApp</b>
+        já com a mensagem preenchida com: <b>nome</b>, <b>WhatsApp</b>, <b>créditos</b>, <b>valor</b>, <b>indicação</b> e <b>código</b>.
       </p>
       <div class="warn">Dica: abra com <b>?ref=JOAO01</b> (ex: <b>.../?ref=JOAO01</b>) para sugerir a indicação automaticamente.</div>
     </div>
@@ -418,7 +418,6 @@
             <button class="copyBtn" type="button" onclick="copyPix()">Copiar Pix</button>
           </div>
 
-          <!-- CÓDIGO DE COMPRA (copiável) -->
           <div class="pixBox">
             <div>
               <div style="font-size:12px;color:rgba(255,255,255,.65);letter-spacing:.08em;text-transform:uppercase">Código da compra</div>
@@ -446,7 +445,7 @@
         </div>
 
         <div class="box">
-          <div class="boxTitle">O que vai no Telegram</div>
+          <div class="boxTitle">Prévia da mensagem do WhatsApp</div>
           <div class="row"><span>Nome</span><strong id="tgName">—</strong></div>
           <div class="row"><span>WhatsApp</span><strong id="tgWhats">—</strong></div>
           <div class="row"><span>Pacote</span><strong id="tgPack">—</strong></div>
@@ -463,7 +462,7 @@
         <div class="box">
           <div class="boxTitle">Confirmação</div>
           <p class="bigMsg">
-            Se precisar falar comigo no WhatsApp:
+            Ao clicar, vai abrir o WhatsApp em:
             <b class="mono" id="whatsNumberUI">—</b>
           </p>
 
@@ -473,7 +472,7 @@
           </div>
 
           <div class="warn">
-            Ao clicar em <b>“Eu fiz o pagamento”</b>, o site envia a confirmação pro seu <b>Worker</b> e ele manda no seu <b>Telegram</b>.
+            O site vai abrir o WhatsApp já com a mensagem de compra preenchida.
           </div>
         </div>
 
@@ -499,11 +498,7 @@
   // CONFIGURE AQUI
   // =======================
   const PIX_KEY = "SUA_CHAVE_PIX_AQUI";     // <= TROQUE
-  const WHATSAPP_NUMBER = "55XXXXXXXXXXX";  // <= TROQUE (ex: 5511999999999)
-
-  // ✅ URL DO SEU WORKER (Cloudflare)
-  // Confere no botão "Visit" ou em Settings > Domains & Routes
-  const WORKER_URL = "https://avectrum-pay-notify.marlonarruda55.workers.dev/"; // <= TROQUE se estiver diferente
+  const WHATSAPP_NUMBER = "554891366632";   // ✅ SEU NÚMERO (só números)
 
   // (opcional) lista de pessoas/códigos que podem indicar
   const INDICADORES = [
@@ -541,7 +536,7 @@
   const qs = new URLSearchParams(location.search);
   const refFromUrl = (qs.get("ref") || "").trim();
   let selectedIndex = -1;
-  let purchaseCode = ""; // <- código da compra
+  let purchaseCode = "";
 
   // =======================
   // HELPERS
@@ -615,7 +610,7 @@
       lbl4.classList.add("active");
       document.getElementById("stepSmall").textContent = "ETAPA 4 DE 4";
       document.getElementById("stepBig").textContent = "Confirmar pagamento";
-      document.getElementById("stepSub").textContent = "Clique em “Eu fiz o pagamento” para enviar a confirmação.";
+      document.getElementById("stepSub").textContent = "Clique em “Eu fiz o pagamento” para abrir o WhatsApp com a mensagem pronta.";
     }
   }
 
@@ -636,7 +631,6 @@
     document.getElementById("sumCode1").textContent = codeTxt;
     document.getElementById("sumCode2").textContent = codeTxt;
     document.getElementById("sumCode3").textContent = codeTxt;
-
     document.getElementById("purchaseCodeUI").textContent = codeTxt;
 
     document.getElementById("miniRef").textContent = ref;
@@ -685,12 +679,11 @@
   }
 
   function goStep(step){
-    if(step === 2){
-      if(selectedIndex < 0){
-        alert("Selecione um pacote de créditos para continuar.");
-        return;
-      }
+    if(step === 2 && selectedIndex < 0){
+      alert("Selecione um pacote de créditos para continuar.");
+      return;
     }
+
     if(step === 3){
       const name = (document.getElementById("buyerName").value || "").trim();
       const whats = (document.getElementById("buyerWhats").value || "").trim();
@@ -698,20 +691,14 @@
         alert("Preencha seu nome e WhatsApp para continuar.");
         return;
       }
-      const ref = getRefFinal();
-      if(!ref){
-        alert("Selecione a indicação.");
-        return;
-      }
       if(!purchaseCode){
         purchaseCode = generatePurchaseCode();
       }
     }
-    if(step === 4){
-      if(!purchaseCode){
-        alert("Primeiro informe seus dados e gere o código na etapa do Pix.");
-        return;
-      }
+
+    if(step === 4 && !purchaseCode){
+      alert("Primeiro gere o código na etapa do Pix.");
+      return;
     }
 
     document.getElementById("step1").style.display = (step===1) ? "block" : "none";
@@ -790,56 +777,36 @@
     copyText(purchaseCode, "Código copiado! Faça o Pix e depois confirme.");
   }
 
-  // ✅ AGORA ENVIA PRO CLOUDFARE WORKER (e ele manda no Telegram)
-  async function sendToWorker(status){
-    const p = selectedPkg();
-    const name = (document.getElementById("buyerName").value || "").trim();
-    const whatsapp = (document.getElementById("buyerWhats").value || "").trim();
-    const ref = getRefFinal();
-    const when = new Date().toLocaleString("pt-BR");
-
-    const payload = {
-      name,
-      whatsapp,
-      code: purchaseCode || "—",
-      pack: p ? pkgLabel(p) : "—",
-      total: p ? brl(p.price) : "—",
-      ref,
-      when,
-      url: location.href,
-      status: status || "CLIENTE CLICOU: EU FIZ O PAGAMENTO"
-    };
-
-    const resp = await fetch(WORKER_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-
-    const txt = await resp.text().catch(()=> "");
-    if(!resp.ok){
-      throw new Error(txt || "Falha ao enviar para o Worker");
-    }
-    return txt;
-  }
-
-  async function confirmPayment(){
+  // ✅ AQUI: abre o WhatsApp NO SEU NÚMERO com a mensagem pronta
+  function confirmPayment(){
     if(!purchaseCode){
       alert("Primeiro gere o código na etapa do Pix.");
       return;
     }
 
-    showToast("Enviando confirmação…");
+    const p = selectedPkg();
+    const name = (document.getElementById("buyerName").value || "").trim();
+    const buyerWhats = (document.getElementById("buyerWhats").value || "").trim();
+    const ref = getRefFinal();
+    const when = new Date().toLocaleString("pt-BR");
 
-    try{
-      await sendToWorker("CLIENTE CLICOU: EU FIZ O PAGAMENTO");
-      alert("✅ Enviado! Chegou no seu Telegram.");
-      showToast("Enviado ✅");
-    }catch(err){
-      console.error(err);
-      alert("❌ Erro ao enviar. Confira a URL do Worker e tente novamente.");
-      showToast("Erro ❌");
-    }
+    const msg =
+`✅ CONFIRMAÇÃO DE PAGAMENTO — AVECTRUM
+
+👤 Nome: ${name || "—"}
+📱 WhatsApp do cliente: ${buyerWhats || "—"}
+
+🧾 Código: ${purchaseCode || "—"}
+🎁 Pacote: ${p ? pkgLabel(p) : "—"}
+💰 Total: ${p ? brl(p.price) : "—"}
+
+🧷 Indicação: ${ref || "direto"}
+🕒 Quando: ${when}
+
+🔗 Página: ${location.href}`.trim();
+
+    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+    window.open(url, "_blank");
   }
 
   function resetFlow(){
@@ -863,11 +830,7 @@
     sel.innerHTML = "";
 
     const opts = [...new Set(["direto", ...INDICADORES.filter(Boolean)])];
-
-    if(refFromUrl){
-      opts.unshift(refFromUrl);
-    }
-
+    if(refFromUrl) opts.unshift(refFromUrl);
     const final = [...new Set(opts)];
 
     final.forEach(v=>{
@@ -882,11 +845,7 @@
     other.textContent = "Outro (digitar)";
     sel.appendChild(other);
 
-    if(refFromUrl){
-      sel.value = refFromUrl;
-    } else {
-      sel.value = "direto";
-    }
+    sel.value = refFromUrl ? refFromUrl : "direto";
 
     document.getElementById("miniRef").textContent = sel.value || "—";
     document.getElementById("sumRef1").textContent = sel.value || "—";
