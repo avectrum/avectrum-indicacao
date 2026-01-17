@@ -1,16 +1,114 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <title>AVECTRUM - Indicação</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<title>AVECTRUM - Indicação</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background:#0f0f0f;
+  color:#fff;
+  padding:20px;
+}
+.step { display:none; max-width:400px; margin:auto; }
+.step.active { display:block; }
+button {
+  width:100%;
+  padding:14px;
+  margin-top:15px;
+  background:#ff5757;
+  border:none;
+  color:#fff;
+  font-size:16px;
+  cursor:pointer;
+  border-radius:6px;
+}
+input {
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border-radius:6px;
+  border:none;
+}
+.card {
+  border:1px solid #333;
+  padding:15px;
+  margin-top:10px;
+  border-radius:8px;
+  cursor:pointer;
+}
+.card:hover { background:#1a1a1a; }
+</style>
 </head>
-<body style="font-family: Arial, sans-serif; background:#111; color:#fff; padding:20px;">
 
-  <h1>AVECTRUM</h1>
-  <p>Sistema de indicação em construção.</p>
+<body>
 
-  <p>Se você chegou até aqui, o site já está funcionando corretamente.</p>
+<h2 style="text-align:center;">AVECTRUM</h2>
+
+<!-- STEP 1 -->
+<div class="step active" id="step1">
+  <h3>Escolha seu pacote</h3>
+
+  <div class="card" onclick="selectPackage('100 créditos','R$ 20')">100 créditos — R$ 20</div>
+  <div class="card" onclick="selectPackage('300 créditos','R$ 50')">300 créditos — R$ 50</div>
+
+</div>
+
+<!-- STEP 2 -->
+<div class="step" id="step2">
+  <h3>Seus dados</h3>
+  <input id="nome" placeholder="Seu nome">
+  <input id="whats" placeholder="WhatsApp">
+  <button onclick="goStep3()">Continuar</button>
+</div>
+
+<!-- STEP 3 -->
+<div class="step" id="step3">
+  <h3>Pagamento via PIX</h3>
+  <p><strong>Chave PIX:</strong></p>
+  <p id="pix">SUA_CHAVE_PIX_AQUI</p>
+
+  <button onclick="sendTelegram()">Enviar comprovante no Telegram</button>
+</div>
+
+<script>
+let pacote = '';
+let valor = '';
+
+function selectPackage(p, v) {
+  pacote = p;
+  valor = v;
+  changeStep(1,2);
+}
+
+function goStep3() {
+  changeStep(2,3);
+}
+
+function changeStep(from, to) {
+  document.getElementById('step'+from).classList.remove('active');
+  document.getElementById('step'+to).classList.add('active');
+}
+
+function sendTelegram() {
+  const nome = document.getElementById('nome').value;
+  const whats = document.getElementById('whats').value;
+
+  const ref = new URLSearchParams(window.location.search).get('ref') || 'direto';
+
+  const msg =
+    `Compra AVECTRUM%0A` +
+    `Nome: ${nome}%0A` +
+    `WhatsApp: ${whats}%0A` +
+    `Pacote: ${pacote}%0A` +
+    `Valor: ${valor}%0A` +
+    `Indicação: ${ref}`;
+
+  window.open(`https://t.me/SEU_USUARIO_TELEGRAM?text=${msg}`, '_blank');
+}
+</script>
 
 </body>
 </html>
